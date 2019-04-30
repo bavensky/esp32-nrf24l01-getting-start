@@ -34,16 +34,6 @@ void setup() {
   radio.setDataRate(RF24_250KBPS);
 }
 void loop() {
-  //  delay(5);
-  //  radio.startListening();
-  //  if (radio.available()) {
-  //    char text[32] = "";
-  //    radio.read(&text, sizeof(text));
-  //    Serial.println(text);
-  //  }
-
-
-
   radio.startListening();
   if ( radio.available()) {
     while (radio.available()) {
