@@ -8,6 +8,20 @@ RF24 radio(4, 5); // CE, CSN
 const byte addresses[][6] = {"00001", "00002"};
 boolean state = 0;
 
+uint32_t pevToggle = 0;
+void ledToggle(int timeToggle) {
+  uint32_t curToggle = millis();
+  if (curToggle - pevToggle >= timeToggle) {
+    pevToggle = curToggle;
+    digitalWrite(led, !digitalRead(led));
+  }
+
+  if (curToggle - pevToggle >= timeToggle * 2) {
+    pevToggle = curToggle;
+    digitalWrite(led, !digitalRead(led));
+  }
+}
+
 void setup() {
   Serial.begin(9600);
   Serial.println("master Setup...");
@@ -22,26 +36,38 @@ void setup() {
 }
 
 uint16_t count = 0;
+int rc = 0;
+
+uint32_t pevTime = 0;
 
 void loop() {
-  delay(100);
-  radio.stopListening();
-  char dataBuffer[100];
-  count += 1;
-  sprintf(dataBuffer, "%d", count);
-  radio.write(&dataBuffer, sizeof(dataBuffer));
-  Serial.println(dataBuffer);
-  digitalWrite(led, !digitalRead(led));
+  uint32_t curTime = millis();
+  if (curTime - pevTime >= 200) {
+    pevTime = curTime;
 
-  delay(100);
-  digitalWrite(led, !digitalRead(led));
-  radio.startListening();
-  while (!radio.available());
-  radio.read(&state, sizeof(state));
-  if (state == HIGH) {
-    digitalWrite(led, HIGH);
+    radio.stopListening();
+    char dataBuffer[100];
+    count += 1;
+    sprintf(dataBuffer, "%d", count);
+
+    rc = radio.write(&dataBuffer, sizeof(dataBuffer));
+    if (rc) {
+      ledToggle(200);
+      Serial.println("Successfully");
+    } else {
+      digitalWrite(led, HIGH);
+    }
   }
-  else {
-    digitalWrite(led, LOW);
-  }
+
+
+  //  digitalWrite(led, !digitalRead(led));
+  //  radio.startListening();
+  //  while (!radio.available());
+  //  radio.read(&state, sizeof(state));
+  //  if (state == HIGH) {
+  //    digitalWrite(led, HIGH);
+  //  }
+  //  else {
+  //    digitalWrite(led, LOW);
+  //  }
 }

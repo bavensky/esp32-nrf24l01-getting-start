@@ -7,6 +7,20 @@ RF24 radio(4, 5); // CE, CSN
 const byte addresses[][6] = {"00001", "00002"};
 boolean state = 0;
 
+uint32_t pevToggle = 0;
+void ledToggle(int timeToggle) {
+  uint32_t curToggle = millis();
+  if (curToggle - pevToggle >= timeToggle) {
+    pevToggle = curToggle;
+    digitalWrite(led, !digitalRead(led));
+  }
+
+  if (curToggle - pevToggle >= timeToggle * 2) {
+    pevToggle = curToggle;
+    digitalWrite(led, !digitalRead(led));
+  }
+}
+
 void setup() {
   Serial.begin(9600);
   Serial.println("slave Setup...");
@@ -28,19 +42,20 @@ void loop() {
   //    Serial.println(text);
   //  }
 
-  digitalWrite(led, !digitalRead(led));
-  delay(100);
-  digitalWrite(led, !digitalRead(led));
+
+
   radio.startListening();
   if ( radio.available()) {
     while (radio.available()) {
       char text[32] = "";
       radio.read(&text, sizeof(text));
+      Serial.print("Incomming message: ");
       Serial.println(text);
+      ledToggle(200);
     }
-    delay(100);
     radio.stopListening();
     state = digitalRead(led);
     radio.write(&state, sizeof(state));
   }
+  delay(1);
 }
